@@ -9,7 +9,7 @@ app.use(express.text({ type: "*/*" }));
 
 // Mapping prefix ke host CDN
 const hosts = {
-  twnx1: "https://hotlivezz179026907.akainu.xyz",
+  hotlivezz179026907: "https://hotlivezz179026907.akainu.xyz",
   twnx2: "https://twnx2-cf.boblcfwudz421.com",
   twnx3: "https://twnx3-cf.boblcfwudz421.com",
 };
