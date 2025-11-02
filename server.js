@@ -9,15 +9,9 @@ app.use(express.text({ type: "*/*" }));
 
 // Mapping prefix ke host CDN
 const hosts = {
-  twnx1: "https://twnx1-cf.boblcfwudz421.com",
+  twnx1: "https://hotlivezz179026907.akainu.xyz",
   twnx2: "https://twnx2-cf.boblcfwudz421.com",
   twnx3: "https://twnx3-cf.boblcfwudz421.com",
-  t2nt1: "https://t2nt1-cf.boblcfwudz421.com",
-  t2nt2: "https://t2nt2-cf.boblcfwudz421.com",
-  t2nt3: "https://t2nt3-cf.boblcfwudz421.com",
-  t3nt1: "https://t3nt1-cf.wooblzlhl524.com",
-  t3nt2: "https://t3nt2-cf.wooblzlhl524.com",
-  t4nt1: "https://t4nt1-cf.wooblzlhl524.com",
 };
 
 app.all("*", async (req, res) => {
@@ -34,9 +28,9 @@ app.all("*", async (req, res) => {
     const upstream = await fetch(targetUrl, {
       method: req.method,
       headers: {
-        "User-Agent": req.get("User-Agent") || "Mozilla/5.0",
-        Referer: "https://ppdd02.playerktidfintkd.shop/",
-        Origin: "https://ppdd02.playerktidfintkd.shop",
+        "User-Agent": req.get("User-Agent") || "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Referer: "https://demo.crunchyrolll.xyz/",
+        Origin: "https://demo.crunchyrolll.xyz",
         Cookie: "vc_ts=1757037722532; show_link=false",
       },
       body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
