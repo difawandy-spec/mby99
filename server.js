@@ -31,7 +31,7 @@ app.all("*", async (req, res) => {
         "User-Agent": req.get("User-Agent") || "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         Referer: "https://demo.crunchyrolll.xyz/",
         Origin: "https://demo.crunchyrolll.xyz",
-        Cookie: "vc_ts=1757037722532; show_link=false",
+        Cookie: "skSuQhWnq7RZYrv=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTA2M2Y4OGVlYmNlNTdhNjFjMWYxZjAiLCJ1c2VyRW1haWwiOiJwcmVtaWRvcmFAZ21haWwuY29tIiwidmVyc2lvbiI6IjEuMCIsImlhdCI6MTc2MjAxNzE2MH0.TihtHF6Vv1rzBJdaUiiw_VZb0nSK71hoQJl2nfq1TTE;",
       },
       body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
     });
