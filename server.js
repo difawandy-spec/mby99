@@ -9,8 +9,10 @@ const HOSTS = {
   twnx1: "https://twnx1-cf.boblcfwudz421.com",
   twnx2: "https://twnx2-cf.boblcfwudz421.com",
   twnx3: "https://twnx3-cf.boblcfwudz421.com",
-  // Tambah host baru di sini
+  hotlivezz1: "https://hotlivezz179266008.akainu.xyz", // Host baru
+  hotlivezz2: "https://hotlivezz179026907.akainu.xyz", // Host baru
 };
+
 
 // Middleware untuk parse body (untuk POST requests)
 app.use(express.raw({ type: "*/*", limit: "50mb" }));
