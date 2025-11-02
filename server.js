@@ -2,63 +2,112 @@ import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
-// Middleware agar body selalu tersedia
-app.use(express.text({ type: "*/*" }));
+// List multiple hosts untuk load balancing
+const HOSTS = [
+  "https://hotlivezz179266008.akainu.xyz",
+  "https://hotlivezz179026907.akainu.xyz"
+];
 
-// Mapping prefix ke host CDN
-const hosts = {
-  hotlivezz179026907: "https://hotlivezz179026907.akainu.xyz",
-  twnx2: "https://twnx2-cf.boblcfwudz421.com",
-  twnx3: "https://twnx3-cf.boblcfwudz421.com",
+// Counter untuk round-robin load balancing
+let hostIndex = 0;
+
+// Function untuk mendapatkan host secara round-robin
+const getNextHost = () => {
+  const host = HOSTS[hostIndex % HOSTS.length];
+  hostIndex++;
+  return host;
 };
 
-app.all("*", async (req, res) => {
-  try {
-    const pathParts = req.path.split("/");
-    const prefix = pathParts[1];
-    const host = hosts[prefix];
-    if (!host) return res.status(400).send("Invalid prefix");
+// Middleware CORS (biar bisa diakses dari browser/hls.js)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    // Buat URL target lengkap dengan query string
-    const query = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-    const targetUrl = host + "/" + pathParts.slice(2).join("/") + query;
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
 
-    const upstream = await fetch(targetUrl, {
-      method: req.method,
-      headers: {
-        "User-Agent": req.get("User-Agent") || "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+// Proxy semua request dengan fallback ke host lain jika gagal
+app.use(async (req, res) => {
+  let lastError;
+  
+  // Loop through hosts dengan retry logic
+  for (let i = 0; i < HOSTS.length; i++) {
+    try {
+      const host = getNextHost();
+      const path = req.originalUrl;
+      const url = `${host}${path}`;
+
+      console.log(`[${new Date().toISOString()}] Proxying to: ${url}`);
+
+      const headers = {
         Referer: "https://demo.crunchyrolll.xyz/",
         Origin: "https://demo.crunchyrolll.xyz",
-        Cookie: "skSuQhWnq7RZYrv=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTA2M2Y4OGVlYmNlNTdhNjFjMWYxZjAiLCJ1c2VyRW1haWwiOiJwcmVtaWRvcmFAZ21haWwuY29tIiwidmVyc2lvbiI6IjEuMCIsImlhdCI6MTc2MjAxNzE2MH0.TihtHF6Vv1rzBJdaUiiw_VZb0nSK71hoQJl2nfq1TTE;",
-      },
-      body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
-    });
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      };
 
-    // Set CORS
-    res.set({
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    });
+      const fetchOptions = {
+        method: req.method,
+        headers,
+        timeout: 10000,
+      };
 
-    // Pipe hasil upstream
-    if (upstream.body) {
-      upstream.body.pipe(res);
-      upstream.body.on("error", (err) => {
-        console.error("Stream error:", err);
+      // Tambah body jika POST/PUT
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        fetchOptions.body = req.body;
+      }
+
+      const response = await fetch(url, fetchOptions);
+
+      // Set status & headers dari response
+      res.status(response.status);
+      for (const [key, value] of response.headers.entries()) {
+        if (key.toLowerCase() !== "access-control-allow-origin") {
+          res.setHeader(key, value);
+        }
+      }
+
+      // Pipe stream langsung ke client
+      response.body.pipe(res);
+
+      // Forward error kalau stream terputus
+      response.body.on("error", (err) => {
+        console.error(`[${new Date().toISOString()}] Stream error:`, err.message);
         res.end();
       });
-    } else {
-      res.status(500).send("Upstream body is empty");
+
+      return; // Success, exit loop
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[${new Date().toISOString()}] Host ${i + 1}/${HOSTS.length} failed:`,
+        error.message
+      );
+      // Lanjut ke host berikutnya jika gagal
     }
-  } catch (err) {
-    console.error("Proxy error:", err);
-    res.status(500).send("Proxy internal error: " + err.message);
+  }
+
+  // Semua host gagal
+  console.error(
+    `[${new Date().toISOString()}] All hosts failed. Last error:`,
+    lastError?.message
+  );
+  if (!res.headersSent) {
+    res.status(503).send("Service Unavailable - All upstream hosts failed");
+  } else {
+    res.end();
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Proxy running on port ${PORT}`);
+// Jalankan server
+app.listen(port, "0.0.0.0", () => {
+  console.log(`✅ Multi-host proxy berjalan di http://0.0.0.0:${port}`);
+  console.log(`📌 Configured hosts: ${HOSTS.join(", ")}`);
 });
