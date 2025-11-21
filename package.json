@@ -1,16 +1,14 @@
 {
-  "name": "proxy-server",
+  "name": "hls-proxy-server",
   "version": "1.0.0",
-  "description": "Proxy server dengan Node.js",
-  "main": "index.js",
+  "description": "HLS Proxy Server with hostname replacement",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
-  "author": "Nama Anda",
-  "license": "MIT",
   "dependencies": {
-    "axios": "^1.7.9",
-    "body-parser": "^1.20.3",
-    "express": "^4.21.2"
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5"
   }
 }
